@@ -31,19 +31,7 @@ jobs:
             'build-status': 'success'
           };
 
-          const response = await github.rest.actions.createWorkflowDispatch({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            workflow_id: "09-input-outputs.yml",
-            ref: "main",
-            inputs
-          });
-
-          if (response.status !== 204) {
-            core.setFailed("Failed to dispatch the workflow.");
-          } else {
-            core.info("Workflow dispatched successfully.");
-          }
+       
          
           // Use listWorkflowRuns to check the status of the dispatched workflow
           const runs = await github.rest.actions.listWorkflowRuns({

@@ -26,7 +26,7 @@ jobs:
         script: |
           const inputs = {
             'dry-run': false,
-            target: 'staging',
+            target: 'int',
             tag: 'v2',
             'build-status': 'success'
           };

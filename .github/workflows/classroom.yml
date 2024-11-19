@@ -44,6 +44,7 @@ jobs:
           } else {
             core.info("Workflow dispatched successfully.");
           }
+         
           // Use listWorkflowRuns to check the status of the dispatched workflow
           const runs = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
@@ -54,7 +55,7 @@ jobs:
           });
 
           // Check if the workflow run has completed successfully
-          const latestRun = runs.data[0]; // The latest successful run
+          const latestRun = runs.data.workflow_runs[0]; // The latest successful run
           if (!latestRun) {
             core.setFailed("No successful workflow runs found. Make sure the workflow runs as expected.");
           } else {

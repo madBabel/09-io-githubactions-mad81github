@@ -71,36 +71,33 @@ jobs:
             run_id: latestRun.id
           });
 
+     
+          
           // Logs are returned as a zip file, we can extract it
           const logsUrl = logsResponse.url;
           core.info(`Logs download URL: ${logsUrl}`);
 
-
-            // Use curl to download the log file
+          // Use curl to download the log file (the log URL from GitHub API)
           const logZipFile = '/tmp/logs.zip';
+
+          // Download the logs zip file using curl
+          const { execSync } = require('child_process');
+          execSync(`curl -L ${logsUrl} -o ${logZipFile}`);
+
+          // Unzip the downloaded log file
           const logDir = '/tmp/logs';
-
-          // Download the logs zip
-          await github.rest.actions.downloadArtifact({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            artifact_id: logsResponse.id,
-            archive_format: 'zip',
-            path: logZipFile
-          });
-
-          // Unzip the file
-          const unzip = require('child_process').execSync;
-          unzip(`unzip ${logZipFile} -d ${logDir}`);
+          execSync(`mkdir -p ${logDir}`);
+          execSync(`unzip ${logZipFile} -d ${logDir}`);
 
           // Search for the expected deploy message in the logs
           const deployMessage = `Deploying to '${inputs.target}' using tag '${inputs.tag}'`;
 
-          // Use grep to check for the deploy message in the log files
+          // Use fs and grep to search for the deploy message in the logs
           const fs = require('fs');
           const logFiles = fs.readdirSync(logDir);
           let messageFound = false;
 
+          // Check if the deploy message exists in any of the logs
           for (const logFile of logFiles) {
             const logContent = fs.readFileSync(`${logDir}/${logFile}`, 'utf-8');
             if (logContent.includes(deployMessage)) {
@@ -114,22 +111,6 @@ jobs:
           } else {
             core.info(`✅ Deployment message found: "${deployMessage}"`);
           }
-
-          // Here, we will simulate the log checking. Ideally, we should download and check the logs.
-          // Since downloading and extracting logs might require more detailed setup, let's simulate it:
-          const logs = [
-            `Building from tag 'v2'`,
-            `Deploying to 'staging' using tag 'v2'`,
-          ];
-
-          // Check if the expected deployment message is in the logs
-          const expectedDeployMessage = `Deploying to '${inputs.target}' using tag '${inputs.tag}'`;
-          if (!logs.includes(expectedDeployMessage)) {
-            core.setFailed(`Expected deployment message not found: "${expectedDeployMessage}".`);
-          } else {
-            core.info(`✅ Deployment message found: "${expectedDeployMessage}"`);
-          }
-       
 
     # 5. Provide feedback
     - name: Provide feedback

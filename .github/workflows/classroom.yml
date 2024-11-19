@@ -70,7 +70,7 @@ jobs:
 
           // Download the logs zip file using curl
           const { execSync } = require('child_process');
-          execSync(`curl -L ${logsUrl} -o ${logZipFile}`);
+          execSync(`curl -L \"${logsUrl}\" -o \"${logZipFile}\"`);
 
           // Unzip the downloaded log file
           const logDir = '/tmp/logs';

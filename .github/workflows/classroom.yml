@@ -73,7 +73,47 @@ jobs:
 
           // Logs are returned as a zip file, we can extract it
           const logsUrl = logsResponse.url;
-          core.info(`Logs downloaded from: ${logsUrl}`);
+          core.info(`Logs download URL: ${logsUrl}`);
+
+
+            // Use curl to download the log file
+          const logZipFile = '/tmp/logs.zip';
+          const logDir = '/tmp/logs';
+
+          // Download the logs zip
+          await github.rest.actions.downloadArtifact({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            artifact_id: logsResponse.id,
+            archive_format: 'zip',
+            path: logZipFile
+          });
+
+          // Unzip the file
+          const unzip = require('child_process').execSync;
+          unzip(`unzip ${logZipFile} -d ${logDir}`);
+
+          // Search for the expected deploy message in the logs
+          const deployMessage = `Deploying to '${inputs.target}' using tag '${inputs.tag}'`;
+
+          // Use grep to check for the deploy message in the log files
+          const fs = require('fs');
+          const logFiles = fs.readdirSync(logDir);
+          let messageFound = false;
+
+          for (const logFile of logFiles) {
+            const logContent = fs.readFileSync(`${logDir}/${logFile}`, 'utf-8');
+            if (logContent.includes(deployMessage)) {
+              messageFound = true;
+              break;
+            }
+          }
+
+          if (!messageFound) {
+            core.setFailed(`Expected deployment message not found in logs: "${deployMessage}".`);
+          } else {
+            core.info(`✅ Deployment message found: "${deployMessage}"`);
+          }
 
           // Here, we will simulate the log checking. Ideally, we should download and check the logs.
           // Since downloading and extracting logs might require more detailed setup, let's simulate it:
